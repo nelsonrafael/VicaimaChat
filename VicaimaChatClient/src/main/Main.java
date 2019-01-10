@@ -3,7 +3,6 @@ package main;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 
 import javax.swing.JFrame;

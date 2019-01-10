@@ -70,7 +70,7 @@ public class ChatClient extends JFrame implements ActionListener, KeyListener {
 		input.setWrapStyleWord(true);
 		DefaultCaret verticalInputCaret = (DefaultCaret) input.getCaret();
 		verticalInputCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-		input.setDocument(new JTextAreaLimit(500));
+		input.setDocument(new JTextAreaLimit(1000));
 		display.setFocusable(false);
 		onlineUsers.setFocusable(false);
 		input.addKeyListener(this);
@@ -96,7 +96,7 @@ public class ChatClient extends JFrame implements ActionListener, KeyListener {
 			println("Connected: " + socket);
 			open();
 			String msg = "Welcome to Vicaima Chat!\nIn order to send a private message type #<CLIENT_NAME_1><CLIENT_NAME_2><...># at the beginning of the sentence.\nHave fun!\n";
-			appendToPane(display, msg, Color.white, Color.black, true);
+			appendToPane(display, msg, Color.black, Color.yellow, true);
 
 		} catch (UnknownHostException uhe) {
 			println("Host unknown: " + uhe.getMessage());
@@ -175,7 +175,7 @@ public class ChatClient extends JFrame implements ActionListener, KeyListener {
 
 	private void println(String msg) {
 		if (msg.startsWith("PRIVATE")) {
-			appendToPane(display, msg + "\n", Color.white, Color.blue, true);
+			appendToPane(display, msg, Color.white, Color.blue, true);
 		} else if (msg.contains("$")) {
 			String firstLine = msg.substring(0, msg.indexOf('\n'));
 			String fUser = msg.substring(0, firstLine.indexOf('@'));
@@ -209,7 +209,7 @@ public class ChatClient extends JFrame implements ActionListener, KeyListener {
 			} else if (msg.contains("incorrect")) {
 				appendToPane(display, msg + "\n", Color.white, Color.red, true);
 			} else {
-				appendToPane(display, msg + "\n", Color.black, Color.yellow, true);
+				appendToPane(display, msg + "\n", Color.white, Color.black, true);
 			}
 		}
 	}
