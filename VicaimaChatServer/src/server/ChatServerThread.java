@@ -17,6 +17,7 @@ public class ChatServerThread extends Thread {
 		ID = socket.getPort();
 	}
 
+	@SuppressWarnings("deprecation")
 	public void send(String msg) {
 		try {
 			streamOut.writeUTF(msg);
@@ -34,6 +35,7 @@ public class ChatServerThread extends Thread {
 		return ID;
 	}
 
+	@SuppressWarnings("deprecation")
 	public void run() {
 		System.out.println("Server Thread " + ID + " running.");
 		while (true) {

@@ -42,6 +42,7 @@ public class ChatServer implements Runnable {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void stop() {
 		if (thread != null) {
 			thread.stop();
