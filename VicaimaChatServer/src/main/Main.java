@@ -9,6 +9,7 @@ public class Main {
 		 * System.out.println("Usage: java ChatServer port"); else server = new
 		 * ChatServer(Integer.parseInt(args[0]));
 		 */
+		@SuppressWarnings("unused")
 		ChatServer server = new ChatServer(4444);
 	}
 }

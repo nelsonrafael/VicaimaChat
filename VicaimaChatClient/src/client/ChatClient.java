@@ -70,7 +70,7 @@ public class ChatClient extends JFrame implements ActionListener, KeyListener {
 		input.setWrapStyleWord(true);
 		DefaultCaret verticalInputCaret = (DefaultCaret) input.getCaret();
 		verticalInputCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-		input.setDocument(new JTextAreaLimit(300));
+		input.setDocument(new JTextAreaLimit(500));
 		display.setFocusable(false);
 		onlineUsers.setFocusable(false);
 		input.addKeyListener(this);
@@ -95,10 +95,24 @@ public class ChatClient extends JFrame implements ActionListener, KeyListener {
 			socket = new Socket(serverName, serverPort);
 			println("Connected: " + socket);
 			open();
+			String msg = "Welcome to Vicaima Chat!\nIn order to send a private message type #<CLIENT_NAME_1><CLIENT_NAME_2><...># at the beginning of the sentence.\nHave fun!\n";
+			appendToPane(display, msg, Color.white, Color.black, true);
+
 		} catch (UnknownHostException uhe) {
 			println("Host unknown: " + uhe.getMessage());
 		} catch (IOException ioe) {
 			println("Unexpected exception: " + ioe.getMessage());
+		}
+	}
+
+	private void sendCommand() {
+		try {
+			streamOut.writeUTF(input.getText());
+			streamOut.flush();
+			input.setText("");
+		} catch (IOException ioe) {
+			println("Sending error: " + ioe.getMessage());
+			close();
 		}
 	}
 
@@ -156,11 +170,13 @@ public class ChatClient extends JFrame implements ActionListener, KeyListener {
 			println("Error closing ...");
 		}
 		client.close();
-		stop(0);
+		// stop(0);
 	}
 
 	private void println(String msg) {
-		if (msg.contains("$")) {
+		if (msg.startsWith("PRIVATE")) {
+			appendToPane(display, msg + "\n", Color.white, Color.blue, true);
+		} else if (msg.contains("$")) {
 			String firstLine = msg.substring(0, msg.indexOf('\n'));
 			String fUser = msg.substring(0, firstLine.indexOf('@'));
 			appendToPane(display, fUser, Color.blue, Color.white, true);
@@ -175,17 +191,26 @@ public class ChatClient extends JFrame implements ActionListener, KeyListener {
 			for (String a : arrOfStr)
 				appendToPane(onlineUsers, a + "\n", Color.black, Color.white, true);
 		} else {
-			if(msg.contains("joined")) {
-				String joinedClient=msg.substring(7, msg.length()-21);
+			if (msg.contains("joined")) {
+				String joinedClient = msg.substring(7, msg.length() - 21);
 				appendToPane(onlineUsers, joinedClient + "\n", Color.black, Color.white, true);
-			}else if(msg.contains("left")) {
-				String leftClient=msg.substring(7, msg.length()-19);
-				int index = onlineUsers.getText().indexOf(leftClient);
-				onlineUsers.select(index, index+leftClient.length()+1);
+				appendToPane(display, msg + "\n", Color.black, Color.green, true);
+			} else if (msg.contains("left")) {
+				/*
+				 * String leftClient = msg.substring(7, msg.length() - 19); int index =
+				 * onlineUsers.getText().indexOf(leftClient); onlineUsers.select(index-1, index
+				 * + leftClient.length() + 1); onlineUsers.replaceSelection("");
+				 */
+				onlineUsers.select(0, onlineUsers.getDocument().getLength());
 				onlineUsers.replaceSelection("");
-				
+				input.setText(this.userName + "@" + this.computerName + " .getAllOnline");
+				sendCommand();
+				appendToPane(display, msg + "\n", Color.black, Color.orange, true);
+			} else if (msg.contains("incorrect")) {
+				appendToPane(display, msg + "\n", Color.white, Color.red, true);
+			} else {
+				appendToPane(display, msg + "\n", Color.black, Color.yellow, true);
 			}
-			appendToPane(display, msg + "\n", Color.black, Color.yellow, true);
 		}
 	}
 
@@ -211,13 +236,14 @@ public class ChatClient extends JFrame implements ActionListener, KeyListener {
 		if (e.getSource() == connect && socket == null) {
 			connect(serverName, serverPort);
 			if (socket != null) {
-				input.setText(".greet");
-				send();
+				input.setText(this.userName + "@" + this.computerName + " .greet");
+				sendCommand();
 			}
 		} else if (e.getSource() == quit) {
 			if (this.socket != null) {
-				input.setText(".bye");
-				send();
+				input.setText(this.userName + "@" + this.computerName + " .bye");
+				sendCommand();
+				close();
 			} else
 				stop(0);
 		} else if (e.getSource() == send && this.socket != null) {

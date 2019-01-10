@@ -44,7 +44,7 @@ public class ChatServer implements Runnable {
 
 	public void stop() {
 		if (thread != null) {
-			thread.stop();
+			//thread.stop();
 			thread = null;
 		}
 	}
@@ -57,7 +57,7 @@ public class ChatServer implements Runnable {
 	}
 
 	public synchronized void handle(int ID, String input) {
-		if (input.endsWith(".bye")) {
+		if (input.endsWith(".bye") && !input.contains("$")) {
 			String clientName = input.substring(0, input.indexOf("@"));
 			clients[findClient(ID)].send(".bye");
 			clientsMap.remove(ID);
@@ -65,8 +65,7 @@ public class ChatServer implements Runnable {
 			for (int i = 0; i < clientCount; i++) {
 				clients[i].send("Client " + clientName + " has left the chat.");
 			}
-
-		} else if (input.endsWith(".greet")) {
+		} else if (input.endsWith(".greet") && !input.contains("$")) {
 			String clientName = input.substring(0, input.indexOf("@"));
 			int id = findClient(ID);
 			if (id != -1) {
@@ -77,19 +76,84 @@ public class ChatServer implements Runnable {
 					clients[i].send("Client " + clientName + " has joined the chat.");
 				}
 			}
-			clients[id].send(getOnlineUsers(ID));
-		} else
-			for (int i = 0; i < clientCount; i++) {
-				// clients[i].send(ID + ": " + input);
-				clients[i].send(input);
+			String onUsers = getOnlineUsers(ID);
+			if (onUsers.length() > 2) {
+				clients[id].send(onUsers);
 			}
+		} else if (input.endsWith(".getAllOnline") && !input.contains("$")) {
+			String clientName = input.substring(0, input.indexOf("@"));
+			int id = findClient(ID);
+			if (id != -1) {
+				clientsMap.put(ID, clientName);
+			}
+			String onUsers = getOnlineUsers(ID);
+			if (onUsers.length() > 2) {
+				clients[id].send(onUsers);
+			}
+		} else {
+			if (input.contains("\n#<") && input.contains(">#")) {
+				String clientName = input.substring(0, input.indexOf("@"));
+				String begin = input.substring(0, input.indexOf("#<"));
+				String middle = input.substring(input.indexOf("#<"), input.indexOf(">#") + 2);
+				String end = input.substring(input.indexOf(">#") + 2, input.length());
+				String[] arrOfStr = middle.split("><");
+				if (arrOfStr.length < 2) {
+					arrOfStr[0] = arrOfStr[0].substring(2, arrOfStr[0].length() - 2);
+				} else {
+					arrOfStr[0] = arrOfStr[0].substring(2, arrOfStr[0].length());
+					arrOfStr[arrOfStr.length - 1] = arrOfStr[arrOfStr.length - 1].substring(0,
+							arrOfStr[arrOfStr.length - 1].length() - 2);
+				}
+				String complete = "PRIVATE MESSAGE FROM " + clientName + " TO ";
+				complete += arrOfStr[0];
+				for (int i = 1; i < arrOfStr.length; i++) {
+					complete += ", " + arrOfStr[i];
+				}
+				complete += ".\n" + begin + end;
+				int[] privateClients = new int[arrOfStr.length + 1];
+				privateClients[0] = findClient(getKeyFromValue(clientsMap, clientName));
+				boolean foundUsers = true;
+				for (int i = 0; i < arrOfStr.length; i++) {
+					privateClients[i + 1] = findClient(getKeyFromValue(clientsMap, arrOfStr[i]));
+					for(int j=0; j<i+1; j++) {
+						if(privateClients[i+1]==privateClients[j]) {
+							foundUsers = false;
+						}
+					}
+					if (privateClients[i + 1] == -1) {
+						foundUsers = false;
+					}
+				}
+				if (foundUsers) {
+					for (int i = 0; i < privateClients.length; i++) {
+						clients[privateClients[i]].send(complete);
+					}
+				} else {
+					clients[privateClients[0]].send("Client(s) incorrect or repeated. Private message not sent.\n");
+				}
+			} else {
+				for (int i = 0; i < clientCount; i++) {
+					// clients[i].send(ID + ": " + input);
+					clients[i].send(input);
+				}
+			}
+		}
 	}
-	
+
+	public static int getKeyFromValue(Map<Integer, String> hm, Object value) {
+		for (Object o : hm.keySet()) {
+			if (hm.get(o).equals(value)) {
+				return (int) o;
+			}
+		}
+		return -1;
+	}
+
 	private String getOnlineUsers(int ID) {
 		String all = "";
 		for (int i = 0; i < clientCount; i++) {
 			if (clients[i].getID() != ID) {
-				all += clientsMap.get(clients[i].getID())+"&";
+				all += clientsMap.get(clients[i].getID()) + "&";
 			}
 		}
 		return all;

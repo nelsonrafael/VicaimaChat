@@ -24,7 +24,9 @@ public class ChatServerThread extends Thread {
 		} catch (IOException ioe) {
 			System.out.println(ID + " ERROR sending: " + ioe.getMessage());
 			server.remove(ID);
-			stop();
+			server.forcedQuit(ID);
+			interrupt();
+			//stop();
 		}
 	}
 
@@ -39,9 +41,10 @@ public class ChatServerThread extends Thread {
 				server.handle(ID, streamIn.readUTF());
 			} catch (IOException ioe) {
 				System.out.println(ID + " ERROR reading: " + ioe.getMessage());
-				server.forcedQuit(ID);
 				server.remove(ID);
-				stop();
+				server.forcedQuit(ID);
+				interrupt();
+				//stop();
 			}
 		}
 	}
