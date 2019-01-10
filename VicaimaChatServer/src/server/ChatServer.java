@@ -44,7 +44,7 @@ public class ChatServer implements Runnable {
 
 	public void stop() {
 		if (thread != null) {
-			//thread.stop();
+			thread.stop();
 			thread = null;
 		}
 	}

@@ -26,7 +26,7 @@ public class ChatServerThread extends Thread {
 			server.remove(ID);
 			server.forcedQuit(ID);
 			interrupt();
-			//stop();
+			stop();
 		}
 	}
 
@@ -44,7 +44,7 @@ public class ChatServerThread extends Thread {
 				server.remove(ID);
 				server.forcedQuit(ID);
 				interrupt();
-				//stop();
+				stop();
 			}
 		}
 	}
